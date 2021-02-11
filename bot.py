@@ -146,7 +146,7 @@ async def on_message(message):
             parts = message.content.split(' ', 3)
             if len(parts) != 4:
                 await message.channel.send("The correct command is:\n"
-                                           "!add XXdYYhZZm [timer info]")
+                                           "!ac add XXdYYhZZm [timer info]")
                 return
 
             timer = calcdatetime(parts[2])
@@ -163,7 +163,7 @@ async def on_message(message):
             parts = message.content.split(' ', 2)
             if len(parts) != 3:
                 await message.channel.send("The correct command is:\n"
-                                           "!rm [id]")
+                                           "!ac rm [id]")
                 return
 
             await remove_timer(parts[2], message.author.id)
@@ -174,7 +174,7 @@ async def on_message(message):
             parts = message.content.split(' ', 3)
             if len(parts) != 4:
                 await message.channel.send("The correct command is:\n"
-                                           "!edit [id] [new info]")
+                                           "!ac edit [id] [new info]")
                 return
 
             await update_info(parts[2], parts[3])
@@ -185,7 +185,7 @@ async def on_message(message):
             parts = message.content.split(' ', 3)
             if len(parts) != 4:
                 await message.channel.send("The correct command is:\n"
-                                           "!assign [id] [fc name]")
+                                           "!ac assign [id] [fc name]")
                 return
 
             await update_info(parts[2], parts[3])
@@ -196,7 +196,7 @@ async def on_message(message):
             parts = message.content.split(' ', 3)
             if len(parts) != 4:
                 await message.channel.send("The correct command is:\n"
-                                           "!reschedule [id] [new time]")
+                                           "!ac reschedule [id] [new time]")
                 return
 
             timer = calcdatetime(parts[2])
@@ -211,11 +211,11 @@ async def on_message(message):
 
         else:
             await message.channel.send("AlarmClock Commands:\n"
-                                       "!add XXdYYhZZm [timer info] - Adds a new timer\n"
-                                       "!rm [id] - Removes an existing timer\n"
-                                       "!edit [id] [new info] - Updates the information on an existing timer\n"
-                                       "!assign [id] [fc name] - Updates the FC on an existing timer\n"
-                                       "!reschedule [id] [new time] - Updates the time on an existing timer")
+                                       "!ac add XXdYYhZZm [timer info] - Adds a new timer\n"
+                                       "!ac rm [id] - Removes an existing timer\n"
+                                       "!ac edit [id] [new info] - Updates the information on an existing timer\n"
+                                       "!ac assign [id] [fc name] - Updates the FC on an existing timer\n"
+                                       "!ac reschedule [id] [new time] - Updates the time on an existing timer")
 
 client.loop.create_task(check_timers())
 client.run(token)
