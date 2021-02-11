@@ -188,7 +188,7 @@ async def on_message(message):
                                            "!ac assign [id] [fc name]")
                 return
 
-            await update_info(parts[2], parts[3])
+            await update_fc(parts[2], parts[3])
             reply = "Timer {0} assigned to {1}!".format(parts[2], parts[3])
             await message.channel.send(reply)
 
