@@ -51,25 +51,25 @@ async def check_timers():
                 if row[4] == 0:
                     diff = row[1] - datetime.now(timezone.utc)
 
-                    if diff.seconds < cfg.first_interval and row[0] not in first_warning:
+                    if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
                         await alert_channel.send("`{0} in {1} minutes!`".format(row[2], int(cfg.first_interval/60)))
                         first_warning.append(row[0])
-                    if diff.seconds < cfg.second_interval and row[0] not in second_warning:
+                    if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
                         await alert_channel.send("`{0} in {1} minutes!`".format(row[2], int(cfg.second_interval/60)))
                         second_warning.append(row[0])
                     if diff.days < 0 and row[0] not in final_warning:
                         await alert_channel.send("`{0} NOW!`".format(row[2]))
                         final_warning.append(row[0])
 
-                    hours = math.floor(diff.days * 24 + diff.seconds/3600)
+                    hours = math.floor(diff.days * 24 + diff.total_seconds()/3600)
                     hours = max(min(hours, 99), 0)
-                    minutes = math.floor(diff.days*1440 + diff.seconds/60)
+                    minutes = math.floor(diff.days*1440 + diff.total_seconds()/60)
 
                     if minutes > 0:
                         minutes = math.floor(minutes % 60)
 
                     countdown = "        {0:02}h {1:03}m ".format(hours, minutes)
-                    if diff.seconds < cfg.first_interval or diff.days < 0:
+                    if diff.total_seconds() < cfg.first_interval or diff.days < 0:
                         countdown = "[ALERT]({0:02}h {1:03}m)".format(hours, minutes)
 
                     list_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
