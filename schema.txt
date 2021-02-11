@@ -4,6 +4,7 @@ CREATE TABLE timers(
    timer_datetime timestamptz,
    timer_fc varchar,
    timer_info varchar,
+   edited_by bigint,
    deleted_by bigint,
    PRIMARY KEY(timer_id)
 );

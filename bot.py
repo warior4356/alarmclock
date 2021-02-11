@@ -103,23 +103,23 @@ async def add_timer(time, info, created_by):
 
     return timer_id
 
-async def update_fc(timer_id, fc_name):
+async def update_fc(timer_id, fc_name, edited_by):
     update_query = (
-        "UPDATE timers SET timer_fc = %s WHERE timer_id = %s;"
+        "UPDATE timers SET timer_fc = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (fc_name, timer_id,))
+    cursor.execute(update_query, (fc_name, timer_id, edited_by,))
 
-async def update_info(timer_id, info):
+async def update_info(timer_id, info, edited_by):
     update_query = (
-        "UPDATE timers SET timer_info = %s WHERE timer_id = %s;"
+        "UPDATE timers SET timer_info = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (info, timer_id,))
+    cursor.execute(update_query, (info, timer_id, edited_by,))
 
-async def update_time(timer_id, new_time):
+async def update_time(timer_id, new_time, edited_by):
     update_query = (
-        "UPDATE timers SET timer_datetime = %s WHERE timer_id = %s;"
+        "UPDATE timers SET timer_datetime = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (new_time, timer_id,))
+    cursor.execute(update_query, (new_time, timer_id, edited_by,))
 
 
 async def remove_timer(timer_id, deleted_by):
@@ -177,7 +177,7 @@ async def on_message(message):
                                            "!ac edit [id] [new info]")
                 return
 
-            await update_info(parts[2], parts[3])
+            await update_info(parts[2], parts[3], message.author.id)
             reply = "Timer {0} updated!".format(parts[2])
             await message.channel.send(reply)
 
@@ -188,7 +188,7 @@ async def on_message(message):
                                            "!ac assign [id] [fc name]")
                 return
 
-            await update_fc(parts[2], parts[3])
+            await update_fc(parts[2], parts[3], message.author.id)
             reply = "Timer {0} assigned to {1}!".format(parts[2], parts[3])
             await message.channel.send(reply)
 
@@ -205,7 +205,7 @@ async def on_message(message):
                 await message.channel.send("Please format the time as XXdYYhZZm")
                 return
 
-            await update_time(parts[2], timer)
+            await update_time(parts[2], timer, message.author.id)
             reply = "Timer {0} updated to {1}!".format(parts[2], timer.strftime("%Y-%m-%d %H:%M"))
             await message.channel.send(reply)
 
