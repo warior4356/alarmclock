@@ -205,7 +205,7 @@ async def on_message(message):
                 await message.channel.send("Please format the time as XXdYYhZZm")
                 return
 
-            await update_info(parts[2], parts[3])
+            await update_time(parts[2], timer)
             reply = "Timer {0} updated to {1}!".format(parts[2], timer)
             await message.channel.send(reply)
 
