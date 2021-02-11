@@ -44,7 +44,7 @@ async def check_timers():
         cursor.execute(select_query, (datetime.now(timezone.utc) - timedelta(minutes=30),))
         rows = cursor.fetchall()
         list_text = "```md\n"
-        list_text +=  "Timer ID | Date and Time    | Countdown         | Fleet Commander    | Information \n"
+        list_text += "Timer ID | Date and Time    | Countdown         | Fleet Commander    | Information \n"
         list_text += "-----------------------------------------------------------------------------------------------\n"
         if len(rows):
             for row in rows:
@@ -52,13 +52,13 @@ async def check_timers():
                     diff = row[1] - datetime.now(timezone.utc)
 
                     if diff.seconds < cfg.first_interval and row[0] not in first_warning:
-                        await alert_channel.send("{0} in {1} minutes!".format(row[2], int(cfg.first_interval/60)))
+                        await alert_channel.send("`{0} in {1} minutes!`".format(row[2], int(cfg.first_interval/60)))
                         first_warning.append(row[0])
                     if diff.seconds < cfg.second_interval and row[0] not in second_warning:
-                        await alert_channel.send("{0} in {1} minutes!".format(row[2], int(cfg.second_interval/60)))
+                        await alert_channel.send("`{0} in {1} minutes!`".format(row[2], int(cfg.second_interval/60)))
                         second_warning.append(row[0])
                     if diff.days < 0 and row[0] not in final_warning:
-                        await alert_channel.send("{0} NOW!".format(row[2]))
+                        await alert_channel.send("`{0} NOW!`".format(row[2]))
                         final_warning.append(row[0])
 
                     hours = math.floor(diff.days * 24 + diff.seconds/3600)
