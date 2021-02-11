@@ -199,7 +199,7 @@ async def on_message(message):
                                            "!ac reschedule [id] [new time]")
                 return
 
-            timer = calcdatetime(parts[2])
+            timer = calcdatetime(parts[3])
 
             if timer < datetime.now(timezone.utc):
                 await message.channel.send("Please format the time as XXdYYhZZm")
