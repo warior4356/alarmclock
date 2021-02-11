@@ -75,12 +75,12 @@ async def check_timers():
                     list_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
                         row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, row[3], row[2])
 
-            list_text += "```"
+        list_text += "```"
 
-            if not list_message:
-                list_message = await list_channel.send(list_text)
-            else:
-                await list_message.edit(content=list_text)
+        if not list_message:
+            list_message = await list_channel.send(list_text)
+        else:
+            await list_message.edit(content=list_text)
         await asyncio.sleep(cfg.polling_interval)
 
 async def add_timer(time, info, created_by):
