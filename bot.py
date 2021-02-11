@@ -156,7 +156,7 @@ async def on_message(message):
                 return
 
             timer_id = await add_timer(timer, parts[3], message.author.id)
-            reply = "Timer {0} created at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
+            reply = "Timer {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
             await message.channel.send(reply)
 
         elif message.content.startswith('!ac rm'):
