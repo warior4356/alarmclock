@@ -107,19 +107,19 @@ async def update_fc(timer_id, fc_name, edited_by):
     update_query = (
         "UPDATE timers SET timer_fc = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (fc_name, timer_id, edited_by,))
+    cursor.execute(update_query, (fc_name, edited_by, timer_id,))
 
 async def update_info(timer_id, info, edited_by):
     update_query = (
         "UPDATE timers SET timer_info = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (info, timer_id, edited_by,))
+    cursor.execute(update_query, (info, edited_by, timer_id,))
 
 async def update_time(timer_id, new_time, edited_by):
     update_query = (
         "UPDATE timers SET timer_datetime = %s, edited_by = %s WHERE timer_id = %s;"
     )
-    cursor.execute(update_query, (new_time, timer_id, edited_by,))
+    cursor.execute(update_query, (new_time, edited_by, timer_id,))
 
 
 async def remove_timer(timer_id, deleted_by):
