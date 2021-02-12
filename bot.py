@@ -57,11 +57,11 @@ async def check_timers():
                     if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
                         await alert_channel.send("`{0} in {1} minutes!`".format(row[2], int(cfg.second_interval/60)))
                         second_warning.append(row[0])
-                    if diff.days < 0 and row[0] not in final_warning:
+                    if diff.total_seconds() < 0 and row[0] not in final_warning:
                         await alert_channel.send("`{0} NOW!`".format(row[2]))
                         final_warning.append(row[0])
 
-                    hours = math.floor(diff.days * 24 + diff.total_seconds()/3600)
+                    hours = math.floor(diff.total_seconds()/3600)
                     hours = max(min(hours, 99), 0)
                     minutes = math.floor(diff.total_seconds()/60)
 
@@ -69,7 +69,7 @@ async def check_timers():
                         minutes = math.floor(minutes % 60)
 
                     countdown = "        {0:02}h {1:03}m ".format(hours, minutes)
-                    if diff.total_seconds() < cfg.first_interval or diff.days < 0:
+                    if diff.total_seconds() < cfg.first_interval:
                         countdown = "[ALERT]({0:02}h {1:03}m)".format(hours, minutes)
 
                     list_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
