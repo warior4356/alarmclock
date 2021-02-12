@@ -63,7 +63,7 @@ async def check_timers():
 
                     hours = math.floor(diff.days * 24 + diff.total_seconds()/3600)
                     hours = max(min(hours, 99), 0)
-                    minutes = math.floor(diff.days*1440 + diff.total_seconds()/60)
+                    minutes = math.floor(diff.total_seconds()/60)
 
                     if minutes > 0:
                         minutes = math.floor(minutes % 60)
