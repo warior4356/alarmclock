@@ -2,7 +2,7 @@ CREATE TABLE timers(
    created_by bigint,
    timer_id integer,
    timer_datetime timestamptz,
-   timer_fc varchar,
+   timer_fc bigint,
    timer_info varchar,
    edited_by bigint,
    deleted_by bigint,
