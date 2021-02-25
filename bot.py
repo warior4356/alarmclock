@@ -40,7 +40,7 @@ async def check_timers():
     while True:
         select_query = (
             "SELECT timers.timer_id, timers.timer_datetime, timers.timer_info, timers.timer_fc, timers.deleted_by "
-            "FROM timers WHERE timers.timer_datetime > %s"
+            "FROM timers WHERE timers.timer_datetime > %s ORDER BY 1 DESC"
         )
         cursor.execute(select_query, (datetime.now(timezone.utc) - timedelta(minutes=30),))
         rows = cursor.fetchall()
