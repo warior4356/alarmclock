@@ -40,7 +40,7 @@ async def check_timers():
     while True:
         select_query = (
             "SELECT timers.timer_id, timers.timer_datetime, timers.timer_info, timers.timer_fc, timers.deleted_by "
-            "FROM timers WHERE timers.timer_datetime > %s ORDER BY 1 DESC"
+            "FROM timers WHERE timers.timer_datetime > %s ORDER BY timers.timer_datetime DESC"
         )
         cursor.execute(select_query, (datetime.now(timezone.utc) - timedelta(minutes=30),))
         rows = cursor.fetchall()
@@ -127,6 +127,8 @@ async def add_timer(time, info, created_by):
         if not cursor.execute(check_query, (timer_id,)):
             unique = True
 
+    info = await clean_string(info)
+
     insert_query = (
         "INSERT INTO timers (created_by, timer_id, timer_info, timer_datetime, deleted_by, timer_fc) "
         "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;"
@@ -147,6 +149,8 @@ async def add_op(time, info, created_by):
         if not cursor.execute(check_query, (timer_id,)):
             unique = True
 
+    info = await clean_string(info)
+
     insert_query = (
         "INSERT INTO timers (created_by, timer_id, timer_info, timer_datetime, deleted_by, timer_fc) "
         "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;"
@@ -162,6 +166,7 @@ async def update_fc(timer_id, fc_name, edited_by):
     cursor.execute(update_query, (fc_name, edited_by, timer_id,))
 
 async def update_info(timer_id, info, edited_by):
+    info = await clean_string(info)
     update_query = (
         "UPDATE timers SET timer_info = %s, edited_by = %s WHERE timer_id = %s;"
     )
@@ -197,8 +202,16 @@ def calcdatetime(date: str):
 
     return timer
 
+async def clean_string(string):
+    new_string = ''
+    new_string = new_string.join(ch for ch in string if ch.isalnum() or ch =='-')
+    return new_string
+
 @client.event
 async def on_message(message):
+    if message.channel.id not in cfg.channel_whitelist:
+        return
+
     if message.content.startswith('!ac'):
         if message.content.startswith('!ac timer'):
             parts = message.content.split(' ', 3)
