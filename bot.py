@@ -204,7 +204,7 @@ def calcdatetime(date: str):
 
 async def clean_string(string):
     new_string = ''
-    new_string = new_string.join(ch for ch in string if ch.isalnum() or ch =='-')
+    new_string = new_string.join(ch for ch in string if ch.isalnum() or ch == '-' or ch == ' ')
     return new_string
 
 @client.event
