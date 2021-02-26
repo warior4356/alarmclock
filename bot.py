@@ -68,11 +68,13 @@ async def check_timers():
                     if row[3]:
                         try:
                             fc = await list_channel.guild.fetch_member(row[3])
+                            ops_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
+                                row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, fc.display_name, row[2])
                         except:
-                            fc = "Complain To Kat"
+                            ops_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
+                                row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, "Complain To Kat", row[2])
 
-                        ops_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
-                            row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, fc.display_name, row[2])
+
 
                         if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
                             await alert_channel.send("`{0} in {1} minutes!` <@{2}>".format(row[2], int(
