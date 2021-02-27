@@ -96,11 +96,11 @@ async def check_timers():
                                 cfg.first_interval / 60)))
                             first_warning.append(row[0])
                         if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
-                            await alert_channel.send("`{0} in {1} minutes with no FC!`>".format(row[2], int(
+                            await alert_channel.send("`{0} in {1} minutes with no FC!`".format(row[2], int(
                                 cfg.second_interval / 60)))
                             second_warning.append(row[0])
                         if diff.total_seconds() < 0 and row[0] not in final_warning:
-                            await alert_channel.send("`{0} NOW with no FC!`>".format(row[2]))
+                            await alert_channel.send("`{0} NOW with no FC!`".format(row[2]))
                             final_warning.append(row[0])
 
         timers_text += "```"
