@@ -198,9 +198,14 @@ def calcdatetime(date: str):
         days = clean_date.split("d", 1)
         hours = days[1].split("h", 1)
         minutes = hours[1].split("m", 1)
+
+        if int(hours[0]) > 24 or int(minutes[0]) > 60:
+            return None
+
         timer = datetime.now(timezone.utc) + timedelta(
             days=int(days[0]), hours=int(hours[0]), minutes=int(minutes[0])
         )
+
 
     return timer
 
@@ -223,6 +228,11 @@ async def on_message(message):
                 return
 
             timer = calcdatetime(parts[2])
+
+            if not timer:
+                await message.channel.send("Your clumsy human hands have failed to enter a simple time correctly. "
+                                           "Stop that.")
+                return
 
             if timer < datetime.now(timezone.utc):
                 await message.channel.send("Please try again or invent time travel.")
