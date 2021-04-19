@@ -78,8 +78,8 @@ async def check_timers():
 
 
                         if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
-                            await alert_channel.send("`{0} in {1} minutes with {2} as FC!` <@{3}>".format(row[2], int(
-                                cfg.first_interval / 60), fc_name, row[3]))
+                            await alert_channel.send("`{0} in {1} minutes with` <@{2}> `as FC!`".format(row[2], int(
+                                cfg.first_interval / 60), row[3]))
                             first_warning.append(row[0])
                         if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
                             await alert_channel.send("`{0} in {1} minutes with {2} as FC!`".format(row[2], int(
