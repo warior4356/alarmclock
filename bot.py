@@ -11,6 +11,7 @@ import random
 import math
 import os
 import pytz
+import traceback
 
 connection = database.create_connection(
     "alarmclock", "postgres", cfg.db_password, "127.0.0.1", "5432"
@@ -38,84 +39,88 @@ async def check_timers():
     final_warning = []
 
     while True:
-        select_query = (
-            "SELECT timers.timer_id, timers.timer_datetime, timers.timer_info, timers.timer_fc, timers.deleted_by "
-            "FROM timers WHERE timers.timer_datetime > %s ORDER BY timers.timer_datetime DESC"
-        )
-        cursor.execute(select_query, (datetime.now(timezone.utc) - timedelta(minutes=30),))
-        rows = cursor.fetchall()
-        timers_text = "```md\n"
-        timers_text += "Timer ID | Date and Time    | Countdown         | Fleet Commander    | Information \n"
-        timers_text += "-----------------------------------------------------------------------------------------------\n"
-        ops_text = "```md\n"
-        ops_text += "Op ID    | Date and Time    | Countdown         | Fleet Commander    | Information \n"
-        ops_text += "-----------------------------------------------------------------------------------------------\n"
-        if len(rows):
-            for row in rows:
-                if row[4] == 0:
-                    diff = row[1] - datetime.now(timezone.utc)
-                    hours = math.floor(diff.total_seconds()/3600)
-                    hours = max(min(hours, 99), 0)
-                    minutes = math.floor(diff.total_seconds()/60)
+        try:
+            select_query = (
+                "SELECT timers.timer_id, timers.timer_datetime, timers.timer_info, timers.timer_fc, timers.deleted_by "
+                "FROM timers WHERE timers.timer_datetime > %s ORDER BY timers.timer_datetime DESC"
+            )
+            cursor.execute(select_query, (datetime.now(timezone.utc) - timedelta(minutes=30),))
+            rows = cursor.fetchall()
+            timers_text = "```md\n"
+            timers_text += "Timer ID | Date and Time    | Countdown         | Fleet Commander    | Information \n"
+            timers_text += "-----------------------------------------------------------------------------------------------\n"
+            ops_text = "```md\n"
+            ops_text += "Op ID    | Date and Time    | Countdown         | Fleet Commander    | Information \n"
+            ops_text += "-----------------------------------------------------------------------------------------------\n"
+            if len(rows):
+                for row in rows:
+                    if row[4] == 0:
+                        diff = row[1] - datetime.now(timezone.utc)
+                        hours = math.floor(diff.total_seconds()/3600)
+                        hours = max(min(hours, 99), 0)
+                        minutes = math.floor(diff.total_seconds()/60)
 
-                    if minutes > 0:
-                        minutes = math.floor(minutes % 60)
+                        if minutes > 0:
+                            minutes = math.floor(minutes % 60)
 
-                    countdown = "        {0:02}h {1:03}m ".format(hours, minutes)
-                    if diff.total_seconds() < cfg.first_interval:
-                        countdown = "[ALERT]({0:02}h {1:03}m)".format(hours, minutes)
+                        countdown = "        {0:02}h {1:03}m ".format(hours, minutes)
+                        if diff.total_seconds() < cfg.first_interval:
+                            countdown = "[ALERT]({0:02}h {1:03}m)".format(hours, minutes)
 
-                    if row[3]:
-                        try:
-                            fc = await list_channel.guild.fetch_member(row[3])
-                            fc_name = str(fc.display_name)
-                        except:
-                            fc_name = "Complain To Kat"
+                        if row[3]:
+                            try:
+                                fc = await list_channel.guild.fetch_member(row[3])
+                                fc_name = str(fc.display_name)
+                            except:
+                                fc_name = "Complain To Kat"
 
-                        ops_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
-                            row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, fc_name, row[2])
+                            ops_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
+                                row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, fc_name, row[2])
 
 
 
-                        if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
-                            await alert_channel.send("`{0} in {1} minutes with` <@{2}> `as FC!`".format(row[2], int(
-                                cfg.first_interval / 60), row[3]))
-                            first_warning.append(row[0])
-                        if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
-                            await alert_channel.send("`{0} in {1} minutes with {2} as FC!`".format(row[2], int(
-                                cfg.second_interval / 60), fc_name))
-                            second_warning.append(row[0])
-                        if diff.total_seconds() < 0 and row[0] not in final_warning:
-                            await alert_channel.send("`{0} NOW with {1} as FC!`".format(row[2], fc_name))
-                            final_warning.append(row[0])
-                    else:
-                        timers_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
-                            row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, "Needed", row[2])
+                            if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
+                                await alert_channel.send("`{0} in {1} minutes with` <@{2}> `as FC!`".format(row[2], int(
+                                    cfg.first_interval / 60), row[3]))
+                                first_warning.append(row[0])
+                            if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
+                                await alert_channel.send("`{0} in {1} minutes with {2} as FC!`".format(row[2], int(
+                                    cfg.second_interval / 60), fc_name))
+                                second_warning.append(row[0])
+                            if diff.total_seconds() < 0 and row[0] not in final_warning:
+                                await alert_channel.send("`{0} NOW with {1} as FC!`".format(row[2], fc_name))
+                                final_warning.append(row[0])
+                        else:
+                            timers_text += "{0}   | {1} | {2} | {3:18.18} | {4}\n".format(
+                                row[0], row[1].strftime("%Y-%m-%d %H:%M"), countdown, "Needed", row[2])
 
-                        if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
-                            await alert_channel.send("`{0} in {1} minutes with no FC!`".format(row[2], int(
-                                cfg.first_interval / 60)))
-                            first_warning.append(row[0])
-                        if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
-                            await alert_channel.send("`{0} in {1} minutes with no FC!`".format(row[2], int(
-                                cfg.second_interval / 60)))
-                            second_warning.append(row[0])
-                        if diff.total_seconds() < 0 and row[0] not in final_warning:
-                            await alert_channel.send("`{0} NOW with no FC!`".format(row[2]))
-                            final_warning.append(row[0])
+                            if diff.total_seconds() < cfg.first_interval and row[0] not in first_warning:
+                                await alert_channel.send("`{0} in {1} minutes with no FC!`".format(row[2], int(
+                                    cfg.first_interval / 60)))
+                                first_warning.append(row[0])
+                            if diff.total_seconds() < cfg.second_interval and row[0] not in second_warning:
+                                await alert_channel.send("`{0} in {1} minutes with no FC!`".format(row[2], int(
+                                    cfg.second_interval / 60)))
+                                second_warning.append(row[0])
+                            if diff.total_seconds() < 0 and row[0] not in final_warning:
+                                await alert_channel.send("`{0} NOW with no FC!`".format(row[2]))
+                                final_warning.append(row[0])
 
-        timers_text += "```"
-        ops_text += "```"
+            timers_text += "```"
+            ops_text += "```"
+            if not timers_message:
+                timers_message = await list_channel.send(timers_text)
+            else:
+                await timers_message.edit(content=timers_text)
 
-        if not timers_message:
-            timers_message = await list_channel.send(timers_text)
-        else:
-            await timers_message.edit(content=timers_text)
+            if not ops_message:
+                ops_message = await list_channel.send(ops_text)
+            else:
+                await ops_message.edit(content=ops_text)
 
-        if not ops_message:
-            ops_message = await list_channel.send(ops_text)
-        else:
-            await ops_message.edit(content=ops_text)
+        except:
+            print(str(datetime.utcnow()) + '\n' + traceback.format_exc())
+
         await asyncio.sleep(cfg.polling_interval)
 
 async def add_timer(time, info, created_by):
@@ -217,128 +222,132 @@ async def clean_string(string):
 
 @client.event
 async def on_message(message):
-    if message.channel.id not in cfg.channel_whitelist:
-        return
+    try:
+        if message.channel.id not in cfg.channel_whitelist:
+            return
 
-    if message.content.startswith('!ac'):
-        if message.content.startswith('!ac timer'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 4:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac add [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info]")
-                return
+        if message.content.startswith('!ac'):
+            if message.content.startswith('!ac timer'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 4:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac add [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info]")
+                    return
 
-            timer = calcdatetime(parts[2])
+                timer = calcdatetime(parts[2])
 
-            if not timer:
-                await message.channel.send("Your clumsy human hands have failed to enter a simple time correctly. "
-                                           "Stop that.")
-                return
+                if not timer:
+                    await message.channel.send("Your clumsy human hands have failed to enter a simple time correctly. "
+                                               "Stop that.")
+                    return
 
-            if timer < datetime.now(timezone.utc):
-                await message.channel.send("Please try again or invent time travel.")
-                return
+                if timer < datetime.now(timezone.utc):
+                    await message.channel.send("Please try again or invent time travel.")
+                    return
 
-            timer_id = await add_timer(timer, parts[3], message.author.id)
-            reply = "Timer {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
-            await message.channel.send(reply)
+                timer_id = await add_timer(timer, parts[3], message.author.id)
+                reply = "Timer {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac op'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 4:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac add [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info]")
-                return
+            elif message.content.startswith('!ac op'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 4:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac add [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info]")
+                    return
 
-            timer = calcdatetime(parts[2])
+                timer = calcdatetime(parts[2])
 
-            if not timer:
-                await message.channel.send("Your clumsy human hands have failed to enter a simple time correctly. "
-                                           "Stop that.")
-                return
+                if not timer:
+                    await message.channel.send("Your clumsy human hands have failed to enter a simple time correctly. "
+                                               "Stop that.")
+                    return
 
-            if timer < datetime.now(timezone.utc):
-                await message.channel.send("Please try again or invent time travel.")
-                return
+                if timer < datetime.now(timezone.utc):
+                    await message.channel.send("Please try again or invent time travel.")
+                    return
 
-            timer_id = await add_op(timer, parts[3], message.author.id)
-            reply = "Op {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
-            await message.channel.send(reply)
+                timer_id = await add_op(timer, parts[3], message.author.id)
+                reply = "Op {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac rm'):
-            parts = message.content.split(' ', 2)
-            if len(parts) != 3:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac rm [id]")
-                return
+            elif message.content.startswith('!ac rm'):
+                parts = message.content.split(' ', 2)
+                if len(parts) != 3:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac rm [id]")
+                    return
 
-            await remove_timer(parts[2], message.author.id)
-            reply = "Timer/op {0} removed!".format(parts[2])
-            await message.channel.send(reply)
+                await remove_timer(parts[2], message.author.id)
+                reply = "Timer/op {0} removed!".format(parts[2])
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac edit'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 4:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac edit [id] [new info]")
-                return
+            elif message.content.startswith('!ac edit'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 4:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac edit [id] [new info]")
+                    return
 
-            await update_info(parts[2], parts[3], message.author.id)
-            reply = "Timer/op {0} updated!".format(parts[2])
-            await message.channel.send(reply)
+                await update_info(parts[2], parts[3], message.author.id)
+                reply = "Timer/op {0} updated!".format(parts[2])
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac take'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 3:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac take [id]")
-                return
+            elif message.content.startswith('!ac take'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 3:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac take [id]")
+                    return
 
-            fc = await message.guild.fetch_member(message.author.id)
+                fc = await message.guild.fetch_member(message.author.id)
 
-            await update_fc(parts[2], message.author.id, message.author.id)
-            reply = "Timer/op {0} assigned to {1}!".format(parts[2], fc.display_name)
-            await message.channel.send(reply)
+                await update_fc(parts[2], message.author.id, message.author.id)
+                reply = "Timer/op {0} assigned to {1}!".format(parts[2], fc.display_name)
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac release'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 3:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac release [id]")
-                return
+            elif message.content.startswith('!ac release'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 3:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac release [id]")
+                    return
 
-            fc = await message.guild.fetch_member(message.author.id)
+                fc = await message.guild.fetch_member(message.author.id)
 
-            await update_fc(parts[2], None, message.author.id)
-            reply = "Op {0} returned to timer board!".format(parts[2])
-            await message.channel.send(reply)
+                await update_fc(parts[2], None, message.author.id)
+                reply = "Op {0} returned to timer board!".format(parts[2])
+                await message.channel.send(reply)
 
-        elif message.content.startswith('!ac mv'):
-            parts = message.content.split(' ', 3)
-            if len(parts) != 4:
-                await message.channel.send("The correct command is:\n"
-                                           "!ac mv [id] [new time]")
-                return
+            elif message.content.startswith('!ac mv'):
+                parts = message.content.split(' ', 3)
+                if len(parts) != 4:
+                    await message.channel.send("The correct command is:\n"
+                                               "!ac mv [id] [new time]")
+                    return
 
-            timer = calcdatetime(parts[3])
+                timer = calcdatetime(parts[3])
 
-            if timer < datetime.now(timezone.utc):
-                await message.channel.send("Please try again or invent time travel.")
-                return
+                if timer < datetime.now(timezone.utc):
+                    await message.channel.send("Please try again or invent time travel.")
+                    return
 
-            await update_time(parts[2], timer, message.author.id)
-            reply = "Timer/op {0} updated to {1}!".format(parts[2], timer.strftime("%Y-%m-%d %H:%M"))
-            await message.channel.send(reply)
+                await update_time(parts[2], timer, message.author.id)
+                reply = "Timer/op {0} updated to {1}!".format(parts[2], timer.strftime("%Y-%m-%d %H:%M"))
+                await message.channel.send(reply)
 
-        else:
-            await message.channel.send("AlarmClock Commands:\n"
-                                       "!ac timer [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info] - Adds a new timer\n"
-                                       "!ac op [XXdYYhZZm or yyyy-mm-ddTHH:MM] [op info] - Adds a new op with you as FC\n"
-                                       "!ac rm [id] - Removes an existing timer/op\n"
-                                       "!ac edit [id] [new info] - Updates the information on an existing timer/op\n"
-                                       "!ac mv [id] [new time] - Updates the time on an existing timer/op\n"
-                                       "!ac take [id] - Makes a timer/op into an op for you\n"
-                                       "!ac release [id] - Returns an op to the timer board")
+            else:
+                await message.channel.send("AlarmClock Commands:\n"
+                                           "!ac timer [XXdYYhZZm or yyyy-mm-ddTHH:MM] [timer info] - Adds a new timer\n"
+                                           "!ac op [XXdYYhZZm or yyyy-mm-ddTHH:MM] [op info] - Adds a new op with you as FC\n"
+                                           "!ac rm [id] - Removes an existing timer/op\n"
+                                           "!ac edit [id] [new info] - Updates the information on an existing timer/op\n"
+                                           "!ac mv [id] [new time] - Updates the time on an existing timer/op\n"
+                                           "!ac take [id] - Makes a timer/op into an op for you\n"
+                                           "!ac release [id] - Returns an op to the timer board")
+
+    except:
+        print(str(datetime.utcnow()) + '\n' + traceback.format_exc())
 
 client.loop.create_task(check_timers())
 client.run(token)
