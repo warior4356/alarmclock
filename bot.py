@@ -226,8 +226,8 @@ async def on_message(message):
         if message.channel.id not in cfg.channel_whitelist:
             return
 
-        if message.content.startswith('!ac'):
-            if message.content.startswith('!ac timer'):
+        if message.content.lower().startswith('!ac'):
+            if message.content.lower().startswith('!ac timer'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 4:
                     await message.channel.send("The correct command is:\n"
@@ -249,7 +249,7 @@ async def on_message(message):
                 reply = "Timer {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac op'):
+            elif message.content.lower().startswith('!ac op'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 4:
                     await message.channel.send("The correct command is:\n"
@@ -271,7 +271,7 @@ async def on_message(message):
                 reply = "Op {0} scheduled at {1}!".format(timer_id, timer.strftime("%Y-%m-%d %H:%M"))
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac rm'):
+            elif message.content.lower().startswith('!ac rm'):
                 parts = message.content.split(' ', 2)
                 if len(parts) != 3:
                     await message.channel.send("The correct command is:\n"
@@ -282,7 +282,7 @@ async def on_message(message):
                 reply = "Timer/op {0} removed!".format(parts[2])
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac edit'):
+            elif message.content.lower().startswith('!ac edit'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 4:
                     await message.channel.send("The correct command is:\n"
@@ -293,7 +293,7 @@ async def on_message(message):
                 reply = "Timer/op {0} updated!".format(parts[2])
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac take'):
+            elif message.content.lower().startswith('!ac take'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 3:
                     await message.channel.send("The correct command is:\n"
@@ -306,7 +306,7 @@ async def on_message(message):
                 reply = "Timer/op {0} assigned to {1}!".format(parts[2], fc.display_name)
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac release'):
+            elif message.content.lower().startswith('!ac release'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 3:
                     await message.channel.send("The correct command is:\n"
@@ -319,7 +319,7 @@ async def on_message(message):
                 reply = "Op {0} returned to timer board!".format(parts[2])
                 await message.channel.send(reply)
 
-            elif message.content.startswith('!ac mv'):
+            elif message.content.lower().startswith('!ac mv'):
                 parts = message.content.split(' ', 3)
                 if len(parts) != 4:
                     await message.channel.send("The correct command is:\n"
